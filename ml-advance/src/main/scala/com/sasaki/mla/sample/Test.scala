@@ -17,10 +17,10 @@ object Test extends SparkHandler {
          */
     
      invokeSessionHandler { () =>
-       val rdd = spark.sparkContext.parallelize(List("a", "b", "c", "d", "e"))
+       val rdd = spark.sparkContext.parallelize(1 to 1000)
        val rddIndex___Item = rdd.zipWithIndex().map(o => (o._2, o._1))
        rddIndex___Item.cartesian(rddIndex___Item).filter(o => o._1._1 < o._2._1 )
-         .map{ case(o, o_) => (o._2 -> o_._2 )}  foreach println
+         .map{ case(o, o_) => (o._2 -> o_._2 )} take(10) foreach println
        
      }
   }
