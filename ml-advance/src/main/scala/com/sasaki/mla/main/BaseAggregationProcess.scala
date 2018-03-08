@@ -19,7 +19,7 @@ import com.sasaki.kit.ReflectHandler
  * +======================================================================+
  *
  */
-object Case01 extends SparkHandler with ReflectHandler {
+object BaseAggregationProcess extends SparkHandler with ReflectHandler {
 
   lazy val spark = buildLocalSparkSession(false)
   lazy val sc = spark.sparkContext
@@ -80,17 +80,23 @@ object Case01 extends SparkHandler with ReflectHandler {
        * 3 : c e
        * 4 : a d e
        *
-       * --> 分别求5种商品两两组合(p1, p2)在购买清单中的命中数
+       * 分别求5种商品两两组合(p1, p2)在购买清单中的命中数，即p1，p2被同时购买的数量，
+       * 再除以总购买商品的用户数得出支持度。
        *
+       * 每种商品的购买数
        * a : 3
        * b : 10
        * c : 4
        * d : 6
        * e : 8
-       *
+       * 
+       * 用上述同时购买p1，p2的数量，设count(p1, p2)，分别得置信度：
+       * {p1 -> p2} = p1 / count(p1, p2)
+       * {p2 -> p1} = p2 / count(p1, p2)
+       * 
        */
 
-      // TopN的安装包
+      // 安装次数TopN的安装包
       val rddPackage1000 = sc.parallelize(rddInstallCount___package_name.map(_._2).take(10))
       println("TopN的安装包：")
       rddPackage1000 foreach println
@@ -106,7 +112,7 @@ object Case01 extends SparkHandler with ReflectHandler {
       rddCombinePackage1000.collect take (3) foreach println
 
       // 包名1与包名2同时被某用户安装的次数
-      val rddPackage1___Package2___UserCount = rddCombinePackage1000.collect
+      val package1___Package2___UserCount = rddCombinePackage1000.collect
         .map { case (o, o_) =>
             val user = rddUser___installPackages
               .filter { case (u, ps) => ps.exists(_ == o) && ps.exists(_ == o_) } //
@@ -115,15 +121,29 @@ object Case01 extends SparkHandler with ReflectHandler {
         }
         .filter(0 != _._3)
       println("包名1与包名2同时被某用户安装的次数：")
-      rddPackage1___Package2___UserCount take (10) foreach println
+      package1___Package2___UserCount take (10) foreach println
       
       println("包名1与包名2的支持度：")
-      rddPackage1___Package2___UserCount.map { case(_1, _2, _3) =>
+      package1___Package2___UserCount.map { case(_1, _2, _3) =>
         (_1, _2, (_3.toDouble / userCount))  
       }
       .filter(_._3 > 0.01)
       .take(3)
-      .foreach(println)
+      .foreach(o => println(s"支持度：{${o._1}, ${o._2}} = ${o._3}"))
+      
+      println("包名1与包名2的置信度：")
+      package1___Package2___UserCount.map { case(_1, _2, _3) =>
+        // 分别找出p1, p2的安装数
+        val count_1 = rddInstallCount___package_name.filter(_._2 == _1).first()._1
+        val count_2 = rddInstallCount___package_name.filter(_._2 == _2).first()._1
+        // 分别计算置信度
+        val p1_p2 = _3.toDouble / count_1
+        val p2_p1 = _3.toDouble / count_2
+        (_1, _2, p1_p2, p2_p1)
+      }
+      .filter(o => o._3 > 0.3 && o._4 > 0.3)
+      .take(3)
+      .foreach(o => println(s"置信度：{${o._1} -> ${o._2}} = ${o._3}, {${o._2} -> ${o._1}} = ${o._4}"))
 
     }
   }
