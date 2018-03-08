@@ -3,7 +3,13 @@ package com.sasaki.mla.main
 import breeze.linalg._
 import breeze.numerics._
 
-object BreezeMatrixAndVectorWorksheet extends App {
+/**
+ * @Author Sasaki
+ * @Mail redskirt@outlook.com
+ * @Timestamp Mar 8, 2018 7:12:20 PM
+ * @Description
+ */
+object BreezeMatrixAnVectorWorksheet extends App {
 
   // >================================== Breeze 矩阵创建 ==================================
 
@@ -100,13 +106,13 @@ object BreezeMatrixAndVectorWorksheet extends App {
   // 7.0 8.0 9.0
 
   lowerTriangular(m)
-  // res19: breeze.linalg.DenseMatrix[Double] = 
+  // res19: breeze.linalg.DenseMatrix[Double] =
   // 1.0 0.0 0.0
   // 4.0 5.0 0.0
   // 7.0 8.0 9.0
-  
+
   upperTriangular(m)
-  // res20: breeze.linalg.DenseMatrix[Double] = 
+  // res20: breeze.linalg.DenseMatrix[Double] =
   // 1.0 2.0 3.0
   // 0.0 5.0 6.0
   // 0.0 0.0 9.0
