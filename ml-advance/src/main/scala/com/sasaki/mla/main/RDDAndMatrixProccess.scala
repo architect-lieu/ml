@@ -59,7 +59,7 @@ object RDDAndMatrixProccess extends SparkHandler {
       val scalerModel = scaler.fit(dfData)
       // rescale each feature to range [min, max].
       val dfScaledData = scalerModel.transform(dfData)
-      
+
       dfScaledData.select(Y, SCALED_FEATURES).show(false)
       
       // 将dfScaledData转换成矩阵形式
