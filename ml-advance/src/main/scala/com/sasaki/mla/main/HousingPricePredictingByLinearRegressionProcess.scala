@@ -45,9 +45,9 @@ object HousingPricePredictingByLinearRegressionProcess extends SparkHandler {
 
       val dsSample = spark.read.textFile(path).rdd.map { r =>
         val o = r.split(',').map(_.toDouble)
-        val v = Vectors.dense(o(1), o(2))
-        val scaler = new Normalizer
-        (o(0).toDouble / 400, scaler.transform(v))
+        val v = Vectors.dense(o(1) / 4, o(2) / 4000)
+//        val scaler = new Normalizer(4)
+        (o(0).toDouble / 80000, /*scaler.transform(v)*/v)
       }
 
       val rddSample = spark.createDataFrame(dsSample).rdd.map { r =>
@@ -57,8 +57,8 @@ object HousingPricePredictingByLinearRegressionProcess extends SparkHandler {
       val countSample = rddSample.count()
 
       // 设置训练参数，建立回归模型
-      val numIterations = 200
-      val stepSize = 1
+      val numIterations = 250
+      val stepSize = 0.3
       val miniBatchFraction = 1.0
       val model = LinearRegressionWithSGD.train(rddSample, numIterations, stepSize, miniBatchFraction)
       // 权重，计算结果的theta参数向量
@@ -88,17 +88,6 @@ object HousingPricePredictingByLinearRegressionProcess extends SparkHandler {
       //      val sameModel = LinearRegressionModel.load(sc, ModelPath)
     }
   }
-
-  //  def mock(spark: Spark) = {
-  //    val r = new Random
-  //    val sample =
-  //      for(i <- 0 until 100) yield {
-  //        val t = r.nextInt(500)
-  //        Sample(t, r.nextDouble() * t * 23, t / 100 + 3)
-  //      }
-  //    spark.createDataFrame(sample)
-  //  }
-
 }
 
-case class Sample(price: Int, area: Double, roomCount: Int)
+case class Sample(price: Int, area: Double, roomNum: Int)
